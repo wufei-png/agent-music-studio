@@ -511,6 +511,7 @@ def scan_tracks(album_dir: Path) -> dict[str, dict[str, Any]]:
             'explicit': track_data.get('explicit', False),
             'has_suno_link': track_data.get('has_suno_link', False),
             'sources_verified': track_data.get('sources_verified', 'N/A'),
+            'genre': track_data.get('genre', ''),
             'mtime': track_mtime,
         }
 
@@ -935,6 +936,7 @@ def _update_tracks_incremental(album: dict[str, Any], album_dir: Path) -> None:
                 'explicit': track_data.get('explicit', False),
                 'has_suno_link': track_data.get('has_suno_link', False),
                 'sources_verified': track_data.get('sources_verified', 'N/A'),
+                'genre': track_data.get('genre', ''),
                 'mtime': current_mtime,
             }
 

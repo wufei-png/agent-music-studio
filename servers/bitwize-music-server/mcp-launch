@@ -14,7 +14,7 @@ if [ -f "$root/.codex-plugin/plugin.json" ]; then
   codex_venv=${AGENT_MUSIC_STUDIO_CODEX_VENV:-"$HOME/.agent-music-studio/codex-venv"}
   codex_python="$codex_venv/bin/python3"
   bootstrap="$root/tools/bootstrap_codex_runtime.py"
-  if [ ! -x "$codex_python" ] || ! python3 "$bootstrap" --venv "$codex_venv" --check --quiet; then
+  if [ ! -x "$codex_python" ] || ! "$codex_python" "$bootstrap" --venv "$codex_venv" --check --quiet; then
     echo "Agent Music Studio Codex runtime is missing or stale." >&2
     echo "Run: python3 \"$bootstrap\" --venv \"$codex_venv\"" >&2
     exit 1

@@ -181,6 +181,31 @@ def test_portable_skills_resolve_canonical_resources_in_both_layouts(
     assert (installed_root / "canonical-skills" / name / "SKILL.md").is_file()
 
 
+@pytest.mark.parametrize("name", ["lyric-writer", "suno-engineer"])
+def test_portable_translation_resolves_claude_root_references(
+    built_plugin: Path,
+    name: str,
+) -> None:
+    token = "${CLAUDE_PLUGIN_ROOT}"
+    canonical = (PROJECT_ROOT / "skills" / name / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    portability = (
+        PROJECT_ROOT / ".agents" / "skills" / name / "references" / "portability.md"
+    ).read_text(encoding="utf-8")
+    references = set(
+        re.findall(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_./-]+\.md)", canonical)
+    )
+
+    assert token in canonical
+    assert token in portability
+    assert "discovered workflow root" in portability
+    assert references
+    for reference in references:
+        assert (PROJECT_ROOT / reference).is_file(), reference
+        assert (built_plugin / reference).is_file(), reference
+
+
 def test_builder_refuses_to_write_inside_source_repository() -> None:
     with pytest.raises(ValueError, match="outside the source repository"):
         build_plugin(PROJECT_ROOT, PROJECT_ROOT / "build" / "agent-music-studio")
@@ -234,3 +259,61 @@ def test_codex_launcher_requires_explicit_runtime_bootstrap(
     assert result.returncode == 1
     assert "runtime is missing or stale" in result.stderr
     assert "bootstrap_codex_runtime.py" in result.stderr
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX launcher contract")
+def test_codex_launcher_checks_with_the_isolated_interpreter(
+    built_plugin: Path, tmp_path: Path
+) -> None:
+    runtime = tmp_path / "runtime"
+    isolated_python = runtime / "bin" / "python3"
+    isolated_python.parent.mkdir(parents=True)
+    invocation_log = tmp_path / "isolated-python.log"
+    isolated_python.write_text(
+        "\n".join(
+            [
+                "#!/bin/sh",
+                "printf '%s\\n' \"$*\" >> \"$INVOCATION_LOG\"",
+                "exit 0",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    isolated_python.chmod(0o755)
+
+    hostile_path = tmp_path / "hostile-path"
+    hostile_path.mkdir()
+    (hostile_path / "dirname").symlink_to("/usr/bin/dirname")
+    global_python = hostile_path / "python3"
+    global_python.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
+    global_python.chmod(0o755)
+
+    env = os.environ.copy()
+    env["AGENT_MUSIC_STUDIO_CODEX_VENV"] = str(runtime)
+    env["INVOCATION_LOG"] = str(invocation_log)
+    env["PATH"] = str(hostile_path)
+    result = subprocess.run(
+        [str(built_plugin / "servers" / "bitwize-music-server" / "mcp-launch")],
+        cwd=built_plugin,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    invocations = invocation_log.read_text(encoding="utf-8").splitlines()
+    assert "bootstrap_codex_runtime.py" in invocations[0]
+    assert "--check --quiet" in invocations[0]
+    assert invocations[1].endswith("run.py")
+
+
+def test_windows_launcher_checks_with_the_isolated_interpreter() -> None:
+    launcher = (
+        PROJECT_ROOT / "servers" / "bitwize-music-server" / "mcp-launch.cmd"
+    ).read_text(encoding="utf-8")
+    assert (
+        '"!CODEX_PYTHON!" "!BOOTSTRAP!" --venv "!CODEX_VENV!" --check --quiet'
+        in launcher
+    )

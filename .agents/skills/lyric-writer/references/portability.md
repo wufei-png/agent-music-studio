@@ -6,6 +6,9 @@
   root.
 - Paths in the canonical workflow are relative to that workflow root unless the
   workflow explicitly says otherwise.
+- Resolve every literal `${CLAUDE_PLUGIN_ROOT}` in the canonical workflow to
+  the discovered workflow root. Do not require that Claude-specific environment
+  variable to exist.
 - A host-specific command maps to the advertised portable skill with the same
   semantic name when that skill is available.
 - Host-specific model and effort frontmatter in the canonical skill is advisory context, not a requirement for other agents.

@@ -5,6 +5,9 @@
   a `skills/resume/SKILL.md` different from this adapter as the workflow root.
 - Paths in the canonical workflow are relative to that workflow root unless the
   workflow explicitly says otherwise.
+- Resolve every literal `${CLAUDE_PLUGIN_ROOT}` in the canonical workflow to
+  the discovered workflow root. Do not require that Claude-specific environment
+  variable to exist.
 - A host-specific command maps to the advertised portable skill with the same
   semantic name when that skill is available.
 - `Read`, `Write`, `Edit`, `Glob`, `Grep`, and `Bash` mean the current host's equivalent file and shell tools; they are not literal tool requirements.

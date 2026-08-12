@@ -10,7 +10,7 @@ if exist "%ROOT%\.codex-plugin\plugin.json" (
   set "CODEX_PYTHON=!CODEX_VENV!\Scripts\python.exe"
   set "BOOTSTRAP=!ROOT!\tools\bootstrap_codex_runtime.py"
   if not exist "!CODEX_PYTHON!" goto :codex_runtime_missing
-  python "!BOOTSTRAP!" --venv "!CODEX_VENV!" --check --quiet
+  "!CODEX_PYTHON!" "!BOOTSTRAP!" --venv "!CODEX_VENV!" --check --quiet
   if errorlevel 1 goto :codex_runtime_missing
   if not defined PLUGIN_ROOT set "PLUGIN_ROOT=!ROOT!"
   "!CODEX_PYTHON!" "%~dp0run.py" %*

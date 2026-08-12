@@ -6,12 +6,14 @@ import importlib.metadata
 import json
 import logging
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
 from handlers import _shared
 from handlers._shared import _safe_json
 from handlers._shared import get_plugin_version as _read_plugin_version
+from tools.plugin_metadata import PORTABLE_SKILLS_FILE, read_runtime_version
 from tools.shared.venv import venv_python
 from tools.state import indexer
 
@@ -89,7 +91,7 @@ def _find_plugin_cache_dir() -> Path | None:
 
 
 def _check_skill_registration() -> dict[str, Any]:
-    """Compare on-disk skills against the Claude Code plugin cache.
+    """Check the installed host package or compare with the Claude cache.
 
     Scans ``{PLUGIN_ROOT}/skills/*/SKILL.md`` for the canonical set of
     skill names, then compares against the cached copy at
@@ -106,6 +108,65 @@ def _check_skill_registration() -> dict[str, Any]:
         p.parent.name
         for p in (_shared.PLUGIN_ROOT / "skills").glob("*/SKILL.md")
     }
+
+    # A Codex plugin runs from its installed cache directory, so PLUGIN_ROOT is
+    # already the registration boundary. Verify that boundary against the
+    # build-time inventory instead of treating manifest presence as success.
+    codex_manifest = _shared.PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
+    if codex_manifest.is_file():
+        cached_version = None
+        manifest_valid = False
+        try:
+            data = json.loads(codex_manifest.read_text(encoding="utf-8"))
+            cached_version = data.get("version") if isinstance(data, dict) else None
+            manifest_valid = (
+                isinstance(data, dict)
+                and isinstance(cached_version, str)
+                and bool(cached_version)
+                and data.get("skills") == "./skills/"
+            )
+        except (json.JSONDecodeError, OSError):
+            pass
+
+        expected_skills: set[str] | None = None
+        inventory_path = _shared.PLUGIN_ROOT / PORTABLE_SKILLS_FILE
+        try:
+            inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+            raw_skills = inventory.get("skills") if isinstance(inventory, dict) else None
+            if (
+                isinstance(raw_skills, list)
+                and raw_skills
+                and all(isinstance(name, str) and name for name in raw_skills)
+                and len(raw_skills) == len(set(raw_skills))
+            ):
+                expected_skills = set(raw_skills)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+        expected = expected_skills or set()
+        missing = sorted(expected - source_skills)
+        ghost = sorted(source_skills - expected)
+        runtime_version = read_runtime_version(_shared.PLUGIN_ROOT)
+        package_valid = (
+            manifest_valid
+            and expected_skills is not None
+            and runtime_version is not None
+        )
+        status = "ok" if package_valid and not missing and not ghost else "stale"
+        return {
+            "status": status,
+            "host": "codex",
+            "source_count": len(expected),
+            "cached_count": len(source_skills),
+            "ok_count": len(expected & source_skills),
+            "missing": missing,
+            "ghost": ghost,
+            "cached_version": cached_version,
+            "runtime_version": runtime_version,
+            "cache_path": str(_shared.PLUGIN_ROOT),
+            "message": None if package_valid else "Invalid Codex manifest or portable skill inventory",
+            "fix_message": "Reinstall or update the agent-music-studio Codex plugin",
+        }
 
     # Find the plugin cache
     cache_dir = _find_plugin_cache_dir()
@@ -248,14 +309,21 @@ async def check_venv_health() -> str:
         JSON with status ("ok", "stale", "no_venv", "error"),
         mismatches, missing packages, counts, and fix command.
     """
-    venv_python_path = venv_python()
+    assert _shared.PLUGIN_ROOT is not None
+    codex_package = (
+        _shared.PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
+    ).is_file()
+    venv_python_path = Path(sys.executable) if codex_package else venv_python()
     if not venv_python_path.exists():
         return _safe_json({
             "status": "no_venv",
-            "message": "Venv not found at ~/.bitwize-music/venv",
+            "message": (
+                "Codex runtime interpreter is unavailable"
+                if codex_package
+                else "Venv not found at ~/.bitwize-music/venv"
+            ),
         })
 
-    assert _shared.PLUGIN_ROOT is not None
     req_path = _shared.PLUGIN_ROOT / "requirements.txt"
     requirements = _parse_requirements(req_path)
     if not requirements:
@@ -297,9 +365,15 @@ async def check_venv_health() -> str:
     }
 
     if status == "stale":
-        result["fix_command"] = (
-            f'"{venv_python_path}" -m pip install -r "{req_path}"'
-        )
+        if codex_package:
+            bootstrap = _shared.PLUGIN_ROOT / "tools" / "bootstrap_codex_runtime.py"
+            result["fix_command"] = (
+                f'"{venv_python_path}" "{bootstrap}" --venv "{Path(sys.prefix)}"'
+            )
+        else:
+            result["fix_command"] = (
+                f'"{venv_python_path}" -m pip install -r "{req_path}"'
+            )
 
     return _safe_json(result)
 

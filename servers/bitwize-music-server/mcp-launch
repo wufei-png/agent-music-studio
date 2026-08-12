@@ -6,8 +6,24 @@
 # is how one .mcp.json entry launches correctly on all three OSes despite the
 # venv interpreter living at bin/python3 (POSIX) vs Scripts\python.exe (Windows).
 #
-# Prefer the plugin venv; fall back to python3 on PATH (mirrors run.py).
+# Codex packages use an isolated, explicitly bootstrapped runtime. Source and
+# Claude installations retain the existing plugin-venv/system-Python behavior.
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+root=$(CDPATH= cd -- "$here/../.." && pwd)
+if [ -f "$root/.codex-plugin/plugin.json" ]; then
+  codex_venv=${AGENT_MUSIC_STUDIO_CODEX_VENV:-"$HOME/.agent-music-studio/codex-venv"}
+  codex_python="$codex_venv/bin/python3"
+  bootstrap="$root/tools/bootstrap_codex_runtime.py"
+  if [ ! -x "$codex_python" ] || ! python3 "$bootstrap" --venv "$codex_venv" --check --quiet; then
+    echo "Agent Music Studio Codex runtime is missing or stale." >&2
+    echo "Run: python3 \"$bootstrap\" --venv \"$codex_venv\"" >&2
+    exit 1
+  fi
+  : "${PLUGIN_ROOT:=$root}"
+  export PLUGIN_ROOT
+  exec "$codex_python" "$here/run.py" "$@"
+fi
+
 venv="$HOME/.bitwize-music/venv/bin/python3"
 if [ -x "$venv" ]; then
   exec "$venv" "$here/run.py" "$@"

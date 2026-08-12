@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from handlers._atomic import atomic_write_text
+from tools.plugin_metadata import read_runtime_version
 
 # Characters NTFS forbids in filenames, beyond the path separators and NUL
 # rejected for every platform in _normalize_slug(). Stripped from slugs on
@@ -764,11 +765,11 @@ _CODE_BLOCK_SECTIONS = frozenset({"Style Box", "Exclude Styles", "Lyrics Box", "
 
 
 def get_plugin_version() -> str:
-    """Return the plugin version string from .claude-plugin/plugin.json.
+    """Return the canonical runtime version used by state and artifacts.
 
-    Reads ``PLUGIN_ROOT / ".claude-plugin" / "plugin.json"`` and returns the
-    ``version`` field as a string.  Returns ``"unknown"`` on any failure
-    (PLUGIN_ROOT is None, file missing, JSON malformed, field absent).
+    The Codex package has its own distribution version, but state migrations
+    and generated artifacts follow the canonical upstream runtime version.
+    Returns ``"unknown"`` when that version cannot be read.
 
     This is intentionally a simple helper — use it wherever a plain version
     string is needed.  For the full stored-vs-current comparison tool, see
@@ -776,12 +777,8 @@ def get_plugin_version() -> str:
     """
     if PLUGIN_ROOT is None:
         return "unknown"
-    manifest = PLUGIN_ROOT / ".claude-plugin" / "plugin.json"
-    try:
-        data = json.loads(manifest.read_text(encoding="utf-8"))
-        return str(data.get("version", "unknown"))
-    except (OSError, json.JSONDecodeError):
-        return "unknown"
+    version = read_runtime_version(PLUGIN_ROOT)
+    return "unknown" if version is None else version
 
 
 def is_album_released(album_slug: str) -> bool:

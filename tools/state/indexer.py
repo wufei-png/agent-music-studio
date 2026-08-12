@@ -86,6 +86,7 @@ except ImportError:
     print("Error: PyYAML is required. Install with: pip install pyyaml")
     sys.exit(1)
 
+from tools.plugin_metadata import read_runtime_version
 from tools.shared.colors import Colors
 from tools.shared.config import CONFIG_PATH, parse_yaml_bool
 from tools.shared.logging_config import setup_logging
@@ -132,7 +133,7 @@ def _count_completed_tracks(tracks: dict[str, dict[str, Any]]) -> int:
 
 
 def _read_plugin_version(plugin_root: Path) -> str | None:
-    """Read plugin version from .claude-plugin/plugin.json.
+    """Read the canonical runtime version used by state migrations.
 
     Args:
         plugin_root: Root directory of the plugin.
@@ -140,17 +141,7 @@ def _read_plugin_version(plugin_root: Path) -> str | None:
     Returns:
         Version string (e.g., "0.43.1"), or None if unreadable.
     """
-    plugin_json = plugin_root / ".claude-plugin" / "plugin.json"
-    if not plugin_json.exists():
-        return None
-    try:
-        with open(plugin_json, encoding='utf-8') as f:
-            data = json.load(f)
-        version = data.get('version')
-        return version if isinstance(version, str) else None
-    except (json.JSONDecodeError, OSError, KeyError) as e:
-        logger.warning("Cannot read plugin version: %s", e)
-        return None
+    return read_runtime_version(plugin_root)
 
 
 def _migrate_1_0_to_1_1(state: dict[str, Any]) -> dict[str, Any]:

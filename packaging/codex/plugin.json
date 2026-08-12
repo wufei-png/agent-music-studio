@@ -1,0 +1,40 @@
+{
+  "name": "agent-music-studio",
+  "version": "0.1.0",
+  "description": "Agent-portable, Suno-first music creation workflows.",
+  "author": {
+    "name": "wufei-png",
+    "url": "https://github.com/wufei-png"
+  },
+  "homepage": "https://github.com/wufei-png/agent-music-studio#readme",
+  "repository": "https://github.com/wufei-png/agent-music-studio",
+  "license": "CC0-1.0",
+  "keywords": [
+    "music",
+    "suno",
+    "agent-skills",
+    "codex",
+    "lyrics",
+    "music-production"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Agent Music Studio",
+    "shortDescription": "Agent-portable Suno music workflows",
+    "longDescription": "Create and resume music projects, write lyrics, and prepare focused Suno generation inputs across supported agent hosts.",
+    "developerName": "wufei-png",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/wufei-png/agent-music-studio",
+    "defaultPrompt": [
+      "Resume my current album and recommend one next action.",
+      "Write and review lyrics for this track.",
+      "Prepare this track for a Suno generation attempt."
+    ],
+    "brandColor": "#7C3AED"
+  }
+}

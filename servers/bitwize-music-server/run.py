@@ -8,6 +8,7 @@ Priority order:
 
 Works on Linux, macOS, Windows, and WSL.
 """
+
 import os
 import subprocess
 import sys
@@ -17,9 +18,17 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent
 SERVER_PY = SCRIPT_DIR / "server.py"
 
-# Check for venv (platform-specific paths)
-HOME = Path.home()
-VENV_DIR = HOME / ".bitwize-music" / "venv"
+# Resolve the plugin boundary before choosing an interpreter. Codex launchers
+# already execute this wrapper with their isolated runtime and must not be
+# redirected into the Claude plugin venv.
+plugin_root = Path(
+    os.environ.get("PLUGIN_ROOT")
+    or os.environ.get("CLAUDE_PLUGIN_ROOT")
+    or SCRIPT_DIR.parent.parent
+).resolve()
+
+# Check for the Claude/source venv (platform-specific paths).
+VENV_DIR = Path.home() / ".bitwize-music" / "venv"
 
 if sys.platform == "win32":
     # Windows: Scripts/python.exe
@@ -28,16 +37,19 @@ else:
     # Linux/macOS/WSL: bin/python3
     VENV_PYTHON = VENV_DIR / "bin" / "python3"
 
-# Use venv if it exists, otherwise fall back to current Python
-if VENV_PYTHON.exists():
+# Use the current isolated interpreter for Codex. Otherwise preserve the
+# existing Claude/source preference and fallback.
+if (plugin_root / ".codex-plugin" / "plugin.json").is_file():
+    python_cmd = sys.executable
+elif VENV_PYTHON.exists():
     python_cmd = str(VENV_PYTHON)
 else:
     python_cmd = sys.executable
 
-# Set CLAUDE_PLUGIN_ROOT if not already set (derive from file location)
-if "CLAUDE_PLUGIN_ROOT" not in os.environ:
-    plugin_root = SCRIPT_DIR.parent.parent
-    os.environ["CLAUDE_PLUGIN_ROOT"] = str(plugin_root)
+# Export both the agent-neutral name and the Claude compatibility name.
+# A host-provided PLUGIN_ROOT wins; Claude-only installations continue to work.
+os.environ.setdefault("PLUGIN_ROOT", str(plugin_root))
+os.environ.setdefault("CLAUDE_PLUGIN_ROOT", str(plugin_root))
 
 # Execute the server with the selected Python
 sys.exit(subprocess.call([python_cmd, str(SERVER_PY), *sys.argv[1:]]))

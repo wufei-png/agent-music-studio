@@ -38,13 +38,13 @@ import threading
 from pathlib import Path
 from typing import Any
 
-# Derive plugin root from environment or file location
-# Check CLAUDE_PLUGIN_ROOT first (standard env var), then PLUGIN_ROOT (legacy), then derive from file
+# Derive the plugin root from the agent-neutral variable first, retain Claude
+# compatibility, then fall back to this file's installed location.
 PLUGIN_ROOT = Path(
-    os.environ.get("CLAUDE_PLUGIN_ROOT") or
-    os.environ.get("PLUGIN_ROOT") or
-    Path(__file__).resolve().parent.parent.parent
-)
+    os.environ.get("PLUGIN_ROOT")
+    or os.environ.get("CLAUDE_PLUGIN_ROOT")
+    or Path(__file__).resolve().parent.parent.parent
+).resolve()
 
 # Add plugin root to sys.path for tools.* imports
 if str(PLUGIN_ROOT) not in sys.path:

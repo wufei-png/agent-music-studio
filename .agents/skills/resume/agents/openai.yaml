@@ -1,0 +1,11 @@
+interface:
+  display_name: "Resume Music Project"
+  short_description: "Resume an album with evidence-aware next steps"
+  default_prompt: "Use $resume to resume my current music project."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "bitwize-music-mcp"
+      description: "Album, track, session, and workflow state tools"
+policy:
+  allow_implicit_invocation: true

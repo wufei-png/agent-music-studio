@@ -1,0 +1,11 @@
+interface:
+  display_name: "Suno Engineer"
+  short_description: "Prepare and iterate Suno generation inputs"
+  default_prompt: "Use $suno-engineer to prepare this track for Suno."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "bitwize-music-mcp"
+      description: "Track state, configuration, and generation workflow tools"
+policy:
+  allow_implicit_invocation: true

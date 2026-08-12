@@ -1,0 +1,6 @@
+interface:
+  display_name: "Lyric Writer"
+  short_description: "Draft and revise singable, reviewable lyrics"
+  default_prompt: "Use $lyric-writer to draft lyrics for this track."
+policy:
+  allow_implicit_invocation: true

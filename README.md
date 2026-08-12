@@ -1,4 +1,13 @@
-# Claude AI Music Skills
+# Agent Music Studio
+
+Agent Music Studio is an agent-portable fork of [Claude AI Music Skills](https://github.com/bitwize-music-studio/claude-ai-music-skills). It preserves the complete Claude Code plugin while adding standard `.agents/skills` adapters, a reproducible Codex/ChatGPT plugin package, and an agent-neutral MCP launch path.
+
+The first portable slice intentionally covers `resume`, `lyric-writer`, and `suno-engineer`. The remaining upstream skills still work through Claude Code and will be ported incrementally instead of being mechanically rewritten. See [agent compatibility](docs/agent-compatibility.md) and [ADR 0001](docs/architecture/decisions/0001-separate-creative-approval-from-release-readiness.md).
+
+> [!IMPORTANT]
+> Album and track Markdown is a mutable creative workspace. A track marked `Final` is creatively approved, not automatically rights-cleared or release-ready. Those decisions belong to a separate release-governance workflow.
+
+## Upstream foundation
 
 I love music but never learned an instrument. AI became the creative outlet that was always out of reach. This project started as a way to go deep on Claude Code plugin architecture, agentic workflows, multi-model orchestration, and MCP tooling. Music was the domain because it was personal.
 
@@ -40,6 +49,31 @@ Concept to released album. You generate on Suno, everything else happens in the 
 ---
 
 ## Install
+
+### Codex and Agent Skills
+
+Opening this repository in a compatible agent host exposes the three portable workflows from `.agents/skills/`. Build the installable Codex/ChatGPT package without disturbing the original Claude paths:
+
+```bash
+mkdir -p /tmp/agent-music-build
+python3 tools/build_codex_plugin.py /tmp/agent-music-build/agent-music-studio
+```
+
+The generated package contains the required `.codex-plugin/plugin.json`, portable `skills/`, bundled `.mcp.json`, canonical upstream workflow references, and MCP runtime.
+
+Bootstrap the package's isolated Python runtime once after installation and
+again after `requirements.txt` changes:
+
+```bash
+python3 /tmp/agent-music-build/agent-music-studio/tools/bootstrap_codex_runtime.py
+```
+
+MCP startup checks this runtime and prints the same repair command when it is
+missing or stale. It never installs dependencies implicitly.
+
+For current source-based testing, validate the package and use the repository directly. Public plugin-directory submission is intentionally deferred until the portable slice has been reviewed and exercised in representative conversations.
+
+### Claude Code
 
 ```bash
 /plugin marketplace add bitwize-music-studio/claude-ai-music-skills

@@ -7225,7 +7225,7 @@ class TestGetPluginVersion:
         assert result["needs_upgrade"] is False
 
     def test_empty_version_string(self, tmp_path):
-        """Empty version string in plugin.json treated as falsy."""
+        """Empty version string in plugin.json is reported as unknown."""
         state = _fresh_state()
         state["plugin_version"] = "0.43.0"
         mock_cache = MockStateCache(state)
@@ -7237,7 +7237,7 @@ class TestGetPluginVersion:
         with patch.object(_shared_mod, "cache", mock_cache), \
              patch.object(_shared_mod, "PLUGIN_ROOT", tmp_path):
             result = json.loads(_run(server.get_plugin_version()))
-        assert result["current_version"] == ""
+        assert result["current_version"] is None
 
     @requires_chmod_denial
     def test_plugin_json_read_oserror(self, tmp_path):
@@ -7584,6 +7584,28 @@ class TestCheckVenvHealth:
             result = json.loads(_run(server.check_venv_health()))
         assert result["status"] == "no_venv"
 
+    def test_codex_package_checks_current_isolated_runtime(self, tmp_path):
+        """Codex health does not consult the separate Claude plugin venv."""
+        (tmp_path / ".codex-plugin").mkdir()
+        (tmp_path / ".codex-plugin" / "plugin.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
+        (tmp_path / "tools").mkdir()
+        (tmp_path / "tools" / "bootstrap_codex_runtime.py").touch()
+        (tmp_path / "requirements.txt").write_text(
+            "requests==2.31.0\n", encoding="utf-8"
+        )
+        fake_home = tmp_path / "fakehome"
+
+        with patch.object(_shared_mod, "PLUGIN_ROOT", tmp_path), \
+             patch("importlib.metadata.version", return_value="2.28.0"), \
+             patch.object(Path, "home", return_value=fake_home):
+            result = json.loads(_run(server.check_venv_health()))
+
+        assert result["status"] == "stale"
+        assert "bootstrap_codex_runtime.py" in result["fix_command"]
+        assert str(Path(sys.prefix)) in result["fix_command"]
+
     def test_missing_requirements_returns_error(self, tmp_path):
         """Missing requirements.txt returns error status."""
         fake_home = tmp_path / "fakehome"
@@ -7783,6 +7805,73 @@ class TestCheckSkillRegistration:
             result = _health_mod._check_skill_registration()
         assert result["status"] == "no_cache"
         assert result["source_count"] == 1
+
+    def test_codex_package_is_its_own_registered_cache(self, tmp_path):
+        """A packaged Codex plugin does not require a Claude cache."""
+        plugin_root = tmp_path / "plugin"
+        skill_dir = plugin_root / "skills" / "test-skill"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text("---\nname: test-skill\n---\n")
+        manifest_dir = plugin_root / ".codex-plugin"
+        manifest_dir.mkdir()
+        (manifest_dir / "plugin.json").write_text(
+            json.dumps({"version": "1.2.3+codex.test", "skills": "./skills/"})
+        )
+        (plugin_root / "portable-skills.json").write_text(
+            json.dumps({"skills": ["test-skill"]})
+        )
+        (plugin_root / "runtime-version.json").write_text(
+            json.dumps({"version": "0.102.0-dev"})
+        )
+
+        fakehome = tmp_path / "fakehome"
+        fakehome.mkdir()
+        with patch.object(_shared_mod, "PLUGIN_ROOT", plugin_root), \
+             patch.object(Path, "home", return_value=fakehome):
+            result = _health_mod._check_skill_registration()
+
+        assert result["status"] == "ok"
+        assert result["host"] == "codex"
+        assert result["ok_count"] == 1
+        assert result["cached_version"] == "1.2.3+codex.test"
+        assert result["runtime_version"] == "0.102.0-dev"
+
+    @pytest.mark.parametrize(
+        ("manifest", "inventory", "installed"),
+        [
+            ("{invalid", {"skills": ["test-skill"]}, ["test-skill"]),
+            (
+                {"version": "1.2.3+codex.test", "skills": "./skills/"},
+                {"skills": ["test-skill"]},
+                [],
+            ),
+            (
+                {"version": "1.2.3+codex.test", "skills": "./skills/"},
+                None,
+                ["test-skill"],
+            ),
+        ],
+    )
+    def test_codex_package_damage_is_stale(
+        self, tmp_path, manifest, inventory, installed
+    ):
+        """Corrupt manifests, missing skills, and missing inventories warn."""
+        plugin_root = tmp_path / "plugin"
+        manifest_dir = plugin_root / ".codex-plugin"
+        manifest_dir.mkdir(parents=True)
+        manifest_text = manifest if isinstance(manifest, str) else json.dumps(manifest)
+        (manifest_dir / "plugin.json").write_text(manifest_text)
+        if inventory is not None:
+            (plugin_root / "portable-skills.json").write_text(json.dumps(inventory))
+        for name in installed:
+            skill_dir = plugin_root / "skills" / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(f"---\nname: {name}\n---\n")
+
+        with patch.object(_shared_mod, "PLUGIN_ROOT", plugin_root):
+            result = _health_mod._check_skill_registration()
+
+        assert result["status"] == "stale"
 
     def test_cached_version_reported(self, tmp_path):
         """Cached plugin version is included in result."""

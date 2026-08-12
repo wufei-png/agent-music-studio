@@ -3251,6 +3251,73 @@ class TestReadPluginVersion:
         result = _read_plugin_version(tmp_path)
         assert result == "0.43.1"
 
+    def test_valid_codex_plugin_json(self, tmp_path):
+        """A Codex distribution manifest is not a runtime fallback."""
+        plugin_dir = tmp_path / ".codex-plugin"
+        plugin_dir.mkdir()
+        (plugin_dir / "plugin.json").write_text(json.dumps({
+            "name": "test-plugin",
+            "version": "0.1.0+codex.test",
+        }))
+        result = _read_plugin_version(tmp_path)
+        assert result is None
+
+    def test_runtime_version_precedes_codex_distribution_version(self, tmp_path):
+        """Keeps migrations on the canonical runtime version line."""
+        (tmp_path / "runtime-version.json").write_text(
+            json.dumps({"version": "0.102.0-dev"})
+        )
+        plugin_dir = tmp_path / ".codex-plugin"
+        plugin_dir.mkdir()
+        (plugin_dir / "plugin.json").write_text(json.dumps({
+            "name": "test-plugin",
+            "version": "0.1.0+codex.test",
+        }))
+
+        result = _read_plugin_version(tmp_path)
+
+        assert result == "0.102.0-dev"
+
+    def test_invalid_runtime_version_does_not_fall_back_to_distribution(
+        self, tmp_path
+    ):
+        """A damaged explicit runtime marker cannot select the Codex version."""
+        (tmp_path / "runtime-version.json").write_text("{invalid")
+        plugin_dir = tmp_path / ".codex-plugin"
+        plugin_dir.mkdir()
+        (plugin_dir / "plugin.json").write_text(json.dumps({
+            "name": "test-plugin",
+            "version": "0.1.0+codex.test",
+        }))
+
+        result = _read_plugin_version(tmp_path)
+
+        assert result is None
+
+    def test_missing_runtime_version_does_not_fall_back_to_distribution(
+        self, tmp_path
+    ):
+        """A new Codex package requires its canonical runtime marker."""
+        plugin_dir = tmp_path / ".codex-plugin"
+        plugin_dir.mkdir()
+        (plugin_dir / "plugin.json").write_text(json.dumps({
+            "name": "test-plugin",
+            "version": "0.1.0+codex.test",
+        }))
+
+        result = _read_plugin_version(tmp_path)
+
+        assert result is None
+
+    @pytest.mark.parametrize("value", [[], None, "0.102.0-dev", 102])
+    def test_non_object_runtime_metadata_fails_closed(self, tmp_path, value):
+        """Wrong top-level JSON shapes cannot crash version readers."""
+        (tmp_path / "runtime-version.json").write_text(json.dumps(value))
+
+        result = _read_plugin_version(tmp_path)
+
+        assert result is None
+
     def test_missing_plugin_json(self, tmp_path):
         """Returns None when plugin.json doesn't exist."""
         result = _read_plugin_version(tmp_path)
@@ -3286,7 +3353,7 @@ class TestReadPluginVersion:
         assert result is None
 
     def test_empty_string_version(self, tmp_path):
-        """Empty string version is returned as-is (valid string)."""
+        """Empty version strings fail closed."""
         plugin_dir = tmp_path / ".claude-plugin"
         plugin_dir.mkdir()
         (plugin_dir / "plugin.json").write_text(json.dumps({
@@ -3294,7 +3361,7 @@ class TestReadPluginVersion:
             "version": "",
         }))
         result = _read_plugin_version(tmp_path)
-        assert result == ""
+        assert result is None
 
     def test_version_is_list(self, tmp_path):
         """Returns None when version is a list."""

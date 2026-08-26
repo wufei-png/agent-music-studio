@@ -68,5 +68,6 @@ class TestCodexPluginManifest:
 
         command = config["mcpServers"]["bitwize-music-mcp"]["command"]
         assert command == "./servers/bitwize-music-server/mcp-launch"
+        assert config["mcpServers"]["bitwize-music-mcp"]["cwd"] == "."
         launcher = project_root / command.removeprefix("./")
         assert launcher.is_file()

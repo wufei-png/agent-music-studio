@@ -32,6 +32,42 @@ def _entries(payload):
     return []
 
 
+def _marketplaces_by_root(codex: str, root: Path):
+    """Return configured local marketplace roots and names, or ``None`` on error."""
+    try:
+        result = subprocess.run(
+            [codex, "plugin", "marketplace", "list", "--json"],
+            capture_output=True,
+            text=True,
+            cwd=root,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+
+    marketplaces = payload.get("marketplaces", []) if isinstance(payload, dict) else []
+    if not isinstance(marketplaces, list):
+        return None
+
+    by_root = {}
+    for marketplace in marketplaces:
+        if not isinstance(marketplace, dict):
+            continue
+        name = marketplace.get("name")
+        installed_root = marketplace.get("root")
+        if not isinstance(name, str) or not isinstance(installed_root, str):
+            continue
+        by_root[Path(installed_root).resolve()] = name
+    return by_root
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -48,26 +84,43 @@ def main() -> int:
         print("codex CLI not found", file=sys.stderr)
         return 2
 
-    add = subprocess.run(
-        [codex, "plugin", "marketplace", "add", str(root), "--json"],
-        capture_output=True,
-        text=True,
-        cwd=root,
-        timeout=30,
-    )
-    if add.returncode != 0:
-        print(add.stderr.strip() or add.stdout.strip(), file=sys.stderr)
-        return add.returncode
-
-    try:
-        add_payload = json.loads(add.stdout)
-        marketplace_name = add_payload["marketplaceName"]
-        added_this_run = not add_payload.get("alreadyAdded", False)
-    except (KeyError, TypeError, json.JSONDecodeError) as exc:
-        print(f"Codex marketplace add returned invalid JSON: {exc}", file=sys.stderr)
+    before = _marketplaces_by_root(codex, root)
+    if before is None:
+        print("Could not read the configured Codex marketplaces", file=sys.stderr)
         return 1
 
-    try:
+    marketplace_name = before.get(root)
+    added_this_run = False
+
+    def discover() -> int:
+        nonlocal marketplace_name, added_this_run
+
+        add = subprocess.run(
+            [codex, "plugin", "marketplace", "add", str(root), "--json"],
+            capture_output=True,
+            text=True,
+            cwd=root,
+            timeout=30,
+        )
+        if add.returncode != 0:
+            print(add.stderr.strip() or add.stdout.strip(), file=sys.stderr)
+            return add.returncode
+
+        try:
+            add_payload = json.loads(add.stdout)
+            marketplace_name = add_payload["marketplaceName"]
+            added_this_run = not add_payload.get("alreadyAdded", False)
+        except (KeyError, TypeError, json.JSONDecodeError) as exc:
+            # The successful add may already have persisted the marketplace.
+            # Compare roots so a malformed response cannot leave our temporary
+            # entry behind, while preserving an entry that existed beforehand.
+            after = _marketplaces_by_root(codex, root)
+            if root not in before and after is not None and root in after:
+                marketplace_name = after[root]
+                added_this_run = True
+            print(f"Codex marketplace add returned invalid JSON: {exc}", file=sys.stderr)
+            return 1
+
         result = subprocess.run(
             [
                 codex,
@@ -121,21 +174,39 @@ def main() -> int:
             f"canonical skills: {len(skill_dirs)}"
         )
         return 0
+
+    cleanup_failed = False
+    try:
+        result_code = discover()
     finally:
-        if added_this_run:
-            remove = subprocess.run(
-                [codex, "plugin", "marketplace", "remove", marketplace_name, "--json"],
-                capture_output=True,
-                text=True,
-                cwd=root,
-                timeout=30,
-            )
-            if remove.returncode != 0:
+        if added_this_run and marketplace_name:
+            try:
+                remove = subprocess.run(
+                    [codex, "plugin", "marketplace", "remove", marketplace_name, "--json"],
+                    capture_output=True,
+                    text=True,
+                    cwd=root,
+                    timeout=30,
+                )
+            except (OSError, subprocess.TimeoutExpired) as exc:
                 print(
                     "Failed to remove temporary Codex marketplace "
-                    f"{marketplace_name!r}: {remove.stderr.strip() or remove.stdout.strip()}",
+                    f"{marketplace_name!r}: {exc}",
                     file=sys.stderr,
                 )
+                cleanup_failed = True
+            else:
+                if remove.returncode != 0:
+                    print(
+                        "Failed to remove temporary Codex marketplace "
+                        f"{marketplace_name!r}: {remove.stderr.strip() or remove.stdout.strip()}",
+                        file=sys.stderr,
+                    )
+                    cleanup_failed = True
+
+    if cleanup_failed:
+        return 1
+    return result_code
 
 
 if __name__ == "__main__":

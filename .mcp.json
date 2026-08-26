@@ -2,7 +2,8 @@
   "mcpServers": {
     "bitwize-music-mcp": {
       "type": "stdio",
-      "command": "./servers/bitwize-music-server/mcp-launch"
+      "command": "./servers/bitwize-music-server/mcp-launch",
+      "cwd": "."
     }
   }
 }

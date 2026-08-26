@@ -6,6 +6,10 @@ This project uses [Conventional Commits](https://conventionalcommits.org/) and [
 
 ## [Unreleased]
 
+### Added
+
+- **Codex plugin discovery is now supported alongside the Claude Code plugin** — the root `.codex-plugin/plugin.json` reuses the canonical `skills/` tree and `.mcp.json`, so both hosts load the same 53 skills and MCP server without duplicating skill content.
+
 ## [0.102.0] - 2026-09-12
 
 ### Added

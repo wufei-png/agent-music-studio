@@ -2,7 +2,7 @@
   "mcpServers": {
     "bitwize-music-mcp": {
       "type": "stdio",
-      "command": "${CLAUDE_PLUGIN_ROOT}/servers/bitwize-music-server/mcp-launch"
+      "command": "./servers/bitwize-music-server/mcp-launch"
     }
   }
 }

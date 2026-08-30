@@ -66,8 +66,12 @@ class TestCodexPluginManifest:
         with (project_root / ".mcp.json").open(encoding="utf-8") as f:
             config = json.load(f)
 
-        command = config["mcpServers"]["bitwize-music-mcp"]["command"]
+        server = config["mcpServers"]["bitwize-music-mcp"]
+        assert server["type"] == "stdio"
+        command = server["command"]
         assert command == "./servers/bitwize-music-server/mcp-launch"
-        assert config["mcpServers"]["bitwize-music-mcp"]["cwd"] == "."
+        assert server["cwd"] == "."
+        assert not command.startswith("/")
+        assert "${" not in command
         launcher = project_root / command.removeprefix("./")
         assert launcher.is_file()

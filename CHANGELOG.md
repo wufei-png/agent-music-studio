@@ -8,7 +8,11 @@ This project uses [Conventional Commits](https://conventionalcommits.org/) and [
 
 ### Added
 
-- **Codex plugin discovery is now supported alongside the Claude Code plugin** — the root `.codex-plugin/plugin.json` reuses the canonical `skills/` tree and `.mcp.json`, so both hosts load the same 53 skills and MCP server without duplicating skill content.
+- **Codex plugin discovery is now supported alongside the Claude Code plugin** — the root `.codex-plugin/plugin.json` reuses the canonical `skills/` tree. Claude keeps `.mcp.json` on `${CLAUDE_PLUGIN_ROOT}`; Codex inlines its stdio spawn (`./mcp-launch` + `"cwd": "."`) in the Codex manifest, because a single command string cannot satisfy both hosts.
+
+### Fixed
+
+- **Claude Code plugin MCP no longer uses a session-cwd-relative launcher** — the Codex-shaped `"command": "./servers/.../mcp-launch"` plus `"cwd": "."` connected when Claude was launched from the plugin root and failed with `ENOENT` from any other project directory. Claude sets `CLAUDE_PLUGIN_ROOT` on the spawned process but does not rewrite a relative `command`, and it ignores `cwd`. `.mcp.json` is restored to `${CLAUDE_PLUGIN_ROOT}/servers/bitwize-music-server/mcp-launch`; Codex keeps its relative spawn as an inline `mcpServers` object in `.codex-plugin/plugin.json`. Plugin Install Smoke now `mcp get`s that plugin server from a temporary directory, and the Codex e2e pin moves to `@openai/codex@0.153.4`.
 
 ## [0.102.0] - 2026-09-12
 

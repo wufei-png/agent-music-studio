@@ -10,7 +10,13 @@
   "homepage": "https://github.com/bitwize-music-studio/claude-ai-music-skills#readme",
   "license": "CC0-1.0",
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
+  "mcpServers": {
+    "bitwize-music-mcp": {
+      "type": "stdio",
+      "command": "./servers/bitwize-music-server/mcp-launch",
+      "cwd": "."
+    }
+  },
   "keywords": [
     "music",
     "suno",

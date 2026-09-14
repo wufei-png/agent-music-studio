@@ -617,15 +617,31 @@ jobs:
     # Skip for fork PRs — untrusted code could modify the plugin content this
     # job feeds to the claude CLI (guard consistent with the other jobs)
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-    # 15, not 10: the installer step below takes 10 of its own, and a step cap
-    # equal to the job cap is inert — both fire at the same instant, so the run
-    # is just as likely to report an unattributed job-level timeout as the step
-    # that actually stalled. Same reasoning as integration.yml's musescore job.
-    timeout-minutes: 15
+    # 25, not 15: the Claude installer step takes 10 of its own, and the MCP
+    # spawn check below also builds the user-style venv. A step cap equal to
+    # the job cap is inert — both fire at the same instant, so the run is just
+    # as likely to report an unattributed job-level timeout as the step that
+    # actually stalled. Same reasoning as integration.yml's musescore job.
+    timeout-minutes: 25
 
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: '3.11'
+
+    # The plugin MCP launcher uses this user-style venv when it exists. The
+    # foreign-cwd spawn check below must get past initialize, so install the
+    # full pinned runtime rather than letting optional imports fail after
+    # Claude has already resolved the command path.
+    - name: Create user-style venv and install runtime requirements
+      run: |
+        python -m venv "$HOME/.bitwize-music/venv"
+        "$HOME/.bitwize-music/venv/bin/python" -m pip install --upgrade pip
+        "$HOME/.bitwize-music/venv/bin/python" -m pip install -r requirements.txt
 
     # Official install method from the install page — no node/npm dependency.
     # install.sh accepts an optional target (stable|latest|X.Y.Z); we pass
@@ -686,6 +702,20 @@ jobs:
         test "$REPO_SKILLS" -eq "$INSTALLED_SKILLS"
         echo "[OK] version $VERSION installed with $INSTALLED_SKILLS skills and .mcp.json"
 
+    # Claude resolves a relative MCP command against the session cwd, not the
+    # plugin root, and ignores cwd in .mcp.json. This check must run from a
+    # directory that is not the checkout, or a broken relative command still
+    # looks connected. --plugin-dir loads this PR's plugin and sets
+    # CLAUDE_PLUGIN_ROOT to the checkout.
+    - name: Spawn plugin MCP from a foreign working directory
+      run: |
+        set -o pipefail
+        PROBE=$(mktemp -d)
+        cd "$PROBE"
+        claude --plugin-dir "$GITHUB_WORKSPACE" mcp get 'plugin:bitwize-music:bitwize-music-mcp' | tee mcp-get.txt
+        grep -q "Status: ✔ Connected" mcp-get.txt
+        echo "[OK] plugin MCP connected from $PROBE"
+
   codex-plugin-e2e:
     name: Codex Plugin E2E
     runs-on: ubuntu-latest
@@ -718,7 +748,7 @@ jobs:
     # so no runner/user plugin state is read or mutated.
     - name: Install pinned Codex CLI
       run: |
-        npm install --global @openai/codex@0.148.0
+        npm install --global @openai/codex@0.153.4
         codex --version
 
     - name: Discover all skills and call target MCP through Codex

@@ -22,7 +22,12 @@ class TestCodexPluginManifest:
         assert manifest["version"]
         assert manifest["description"]
         assert manifest["skills"] == "./skills/"
-        assert manifest["mcpServers"] == "./.mcp.json"
+        servers = manifest["mcpServers"]
+        assert isinstance(servers, dict)
+        server = servers["bitwize-music-mcp"]
+        assert server["type"] == "stdio"
+        assert server["command"] == "./servers/bitwize-music-server/mcp-launch"
+        assert server["cwd"] == "."
 
     def test_manifest_identity_and_version_match_claude_manifest(self, project_root):
         with (project_root / ".claude-plugin" / "plugin.json").open(encoding="utf-8") as f:
@@ -62,16 +67,27 @@ class TestCodexPluginManifest:
         assert not missing, f"Canonical skills missing SKILL.md: {missing}"
         assert all("_error" not in frontmatter for frontmatter in all_skill_frontmatter.values())
 
-    def test_mcp_config_uses_a_plugin_relative_launcher(self, project_root):
+    def test_claude_mcp_config_uses_plugin_root_interpolation(self, project_root):
         with (project_root / ".mcp.json").open(encoding="utf-8") as f:
             config = json.load(f)
 
         server = config["mcpServers"]["bitwize-music-mcp"]
         assert server["type"] == "stdio"
         command = server["command"]
+        assert command == (
+            "${CLAUDE_PLUGIN_ROOT}/servers/bitwize-music-server/mcp-launch"
+        )
+        assert "cwd" not in server
+        launcher = project_root / "servers" / "bitwize-music-server" / "mcp-launch"
+        assert launcher.is_file()
+
+    def test_codex_mcp_config_uses_plugin_relative_launcher(self, project_root):
+        with (project_root / ".codex-plugin" / "plugin.json").open(encoding="utf-8") as f:
+            server = json.load(f)["mcpServers"]["bitwize-music-mcp"]
+
+        command = server["command"]
         assert command == "./servers/bitwize-music-server/mcp-launch"
         assert server["cwd"] == "."
-        assert not command.startswith("/")
         assert "${" not in command
         launcher = project_root / command.removeprefix("./")
         assert launcher.is_file()

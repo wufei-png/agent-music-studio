@@ -22,6 +22,7 @@ import json
 import os
 import queue
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -218,14 +219,28 @@ class AppServer:
         try:
             self._process.wait(timeout=APP_SERVER_CLOSE_SECONDS)
         except subprocess.TimeoutExpired:
-            self._process.terminate()
+            self._signal_process_group(signal.SIGTERM)
             try:
                 self._process.wait(timeout=APP_SERVER_CLOSE_SECONDS)
             except subprocess.TimeoutExpired:
-                self._process.kill()
+                self._signal_process_group(signal.SIGKILL)
                 self._process.wait(timeout=APP_SERVER_CLOSE_SECONDS)
+        # MCP children can outlive the app-server and keep writing under
+        # CODEX_HOME/plugins, which then fails TemporaryDirectory cleanup.
+        self._signal_process_group(signal.SIGKILL)
         self._stdout_thread.join(timeout=1)
         self._stderr_thread.join(timeout=1)
+
+    def _signal_process_group(self, posix_signal: int) -> None:
+        if sys.platform == "win32":
+            with contextlib.suppress(OSError):
+                if posix_signal == signal.SIGTERM:
+                    self._process.terminate()
+                else:
+                    self._process.kill()
+            return
+        with contextlib.suppress(ProcessLookupError, PermissionError, OSError):
+            os.killpg(self._process.pid, posix_signal)
 
 
 def _canonical_skill_names(root: Path) -> set[str]:
@@ -464,7 +479,13 @@ def main() -> int:
 
     try:
         expected_names = _canonical_skill_names(root)
-        with tempfile.TemporaryDirectory(prefix="bitwize-music-codex-") as codex_home:
+        # ignore_cleanup_errors: Codex may still be writing under plugins/ after
+        # app-server EOF, which otherwise turns a passing probe into
+        # OSError: [Errno 39] Directory not empty.
+        with tempfile.TemporaryDirectory(
+            prefix="bitwize-music-codex-",
+            ignore_cleanup_errors=True,
+        ) as codex_home:
             env = os.environ.copy()
             env["CODEX_HOME"] = codex_home
             version = _install_local_plugin(codex, root=root, env=env)
@@ -486,10 +507,11 @@ def main() -> int:
                 _check_mcp(app, root=root)
             finally:
                 app.close()
-        print(
-            f"Codex {version} loaded {loaded_count} canonical skills and called "
-            f"{EXPECTED_MCP_SERVER}/{EXPECTED_TOOL} successfully"
-        )
+            print(
+                f"Codex {version} loaded {loaded_count} canonical skills and called "
+                f"{EXPECTED_MCP_SERVER}/{EXPECTED_TOOL} successfully",
+                flush=True,
+            )
         return 0
     except ProbeError as exc:
         print(f"Codex plugin E2E failed: {exc}", file=sys.stderr)

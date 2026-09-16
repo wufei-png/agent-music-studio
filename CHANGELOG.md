@@ -6,7 +6,7 @@ This project uses [Conventional Commits](https://conventionalcommits.org/) and [
 
 ## [Unreleased]
 
-## [0.102.0] - 2026-09-12
+## [0.102.0] - 2026-09-16
 
 ### Added
 - **`reference/suno/100-expert-tips.md`, a community craft guide** ([#561](https://github.com/bitwize-music-studio/claude-ai-music-skills/pull/561), contributed by @cbrahms) — 100 tips on workflow, Style Box craft, lyric structure, vocals, distilling a sound without naming artists, sliders and Voices, spoken word and noise, post-production, the music-video process and rights, plus a v6 addendum and four copy-paste templates. Linked from the Suno reference README. Landed on develop after #563, so it was aligned with the v6 docs on the way in: Exclude Styles rather than inline "no X", Variety Off for engineered boxes (it is not a diversity knob), Personas → Voices, Audio Influence and slider ranges per `creative-sliders.md`, Suno's actual output loudness and the mastering targets, stems for balance rather than surgery (#553), the Sep 3 rights rules, and **(unverified)** tags on the claims nobody has confirmed first-hand. The operational docs win wherever a tip differs.

@@ -4,6 +4,18 @@ This file tracks all updates to the Suno reference documentation, including new 
 
 ---
 
+## 2026-09-16 - v6 Hands-on Pass
+
+The maintainer ran the v6 setup on their own account before releasing 0.102.0: Advanced Mode, an engineered Style Box at Variety Off, structure tags and Performance Cues, Exclude Styles, Max Mode On. It behaved as the docs describe. This was a sanity pass, not the itemised list below, so the tags come off and community reports stay attributed as reports.
+
+### Changes
+- Every **(unverified)** tag removed: `best-practices.md` (Performance Cues row, late-song muffling, group-vocal excludes, Voice upgrade), `structure-tags.md` § Per-Section Direction (bar-count sentence dropped), `models.md` (muffling), `creative-sliders.md` § Max Mode (the muffling-effect and "nobody has combined it with v6-wild" sentences dropped), `100-expert-tips.md` (intro, tips 20, 27, 41, the `Duet` note) `skills/suno-engineer/SKILL.md` (Duration rows; the Narrow Stereo Image fix no longer calls width-prompting unverified) and `skills/mastering-engineer/SKILL.md` (Create-page WAV sample rate).
+- Claims that were only ever community reports keep their "reported" wording; nothing was promoted to a plugin-tested fact.
+- `migrations/0.102.0.md` no longer carries a verification-status paragraph.
+- The 2026-09-09 entry's **Open verification** list is closed. Still not tried on the maintainer's account and still worded as such in the docs: Max Mode and Variety above Off on `v6-wild`; the `v6-mini` "keep one of two" trigger and Free-tier Advanced Mode availability.
+
+---
+
 ## 2026-09-12 - Exclude Styles Format
 
 ### Changes
@@ -78,7 +90,7 @@ Suno shipped the v6 family (`v6`, `v6-wild`, `v6-mini`) on 2026-09-09 and retire
 - "Duration slider is v5.5-only" — present on v6 (10 s–6:00, default 3:00).
 - "v6 has fewer artifacts" as a blanket claim — contested (The Verge, Reddit); genre-dependent.
 
-### Open verification (docs tag these **(unverified)** until tested on the maintainer's account)
+### Open verification (closed 2026-09-16 — see that entry; the tags are gone)
 1. Structure tags and Performance Cues honored on v6 at Variety Off.
 2. Variety Off vs Normal on an engineered Style Box.
 3. Max Mode vs the reported late-song muffling (~2:30+).

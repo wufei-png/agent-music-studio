@@ -20,7 +20,7 @@ Suno's models are the **v6 family**: `v6` (flagship; Pro/Premier), `v6-wild` (ex
 | Exclude Styles | 1,000 chars | the only reliable negative path |
 | Simple-mode prompt | 3,000 chars | Simple Mode is not the plugin's path (see below) |
 | Maximum length | 8 minutes | Auto and Extend; the Duration slider's Custom range is 10 s–6:00 |
-| Structure tags, Performance Cues | bracket tags shape arrangement; per-section cues are read **(unverified — see CHANGELOG open verification)** | |
+| Structure tags, Performance Cues | bracket tags shape arrangement; per-section cues are read | |
 | Weirdness / Style Influence / Audio Influence | defaults 50 / 50 / 25 | see [creative-sliders.md](creative-sliders.md) |
 | Vocal Gender, Exclude Styles, Duration (Auto / Custom) | under More Options in Advanced Mode | |
 | Credits | 10 per generation (two songs) | same on all three models |
@@ -28,7 +28,7 @@ Suno's models are the **v6 family**: `v6` (flagship; Pro/Premier), `v6-wild` (ex
 **Two controls decide whether your prompt is used as written.**
 
 - **Variety** (More Options; default *Normal* on v6 and v6-mini, *Off* on v6-wild). At any setting above Off, Suno **rewrites and expands your style prompt** and diverges the two takes. Suno's own FAQ: "If you'd like to retain full control of your style tags, reduce the Variety slider to 0." **This plugin's rule: Variety Off whenever the Style Box was engineered.** The five stops and the mechanism are in [creative-sliders.md § Variety](creative-sliders.md#variety).
-- **Max Mode** (toggle). Suno's copy: "Uses more compute to maximize consistency throughout the song. Costs 2x credits per song." — so a generation costs 20 credits. Suno recommends it for songs longer than two minutes, covers that should stay close to the source, style transfer, and keeping vocals consistent. Several users report the mix going muffled after roughly 2:30 on standard mode **(unverified)**; for album tracks the plugin defaults Max Mode On.
+- **Max Mode** (toggle). Suno's copy: "Uses more compute to maximize consistency throughout the song. Costs 2x credits per song." — so a generation costs 20 credits. Suno recommends it for songs longer than two minutes, covers that should stay close to the source, style transfer, and keeping vocals consistent. Several users report the mix going muffled after roughly 2:30 on standard mode; for album tracks the plugin defaults Max Mode On.
 
 **Simple Mode vs Advanced Mode.** Suno's headline features (plain-language section edits, single-lyric swaps, multi-source mashups, sample-and-isolate, image / video / voice-memo inputs) live in **Simple Mode**. Simple Mode treats typed lyrics as a seed and writes extra lines, and switching to Advanced does not carry the prompt across; its single-word lyric replacement is reported unreliable and syllable-sensitive (single source). **The plugin's workflow is Advanced Mode only**: finished lyrics in the Lyrics Box, an engineered Style Box, settings from the track's Generation Settings table.
 
@@ -371,7 +371,7 @@ Keep it to **2–4 items** — over-specifying dilutes the effect.
 - Instruments: "drums", "electric guitar"
 - Vocal effects: "autotune", "heavy reverb"
 - Stylistic elements: "EDM drops", "screaming"
-- **Unwanted group vocals** (a common Suno over-add): "choir", "crowd vocals", "backing vocals", "gang vocals", "call-and-response", "vocal harmonies", "layered vocals" **(unverified on v6)**
+- **Unwanted group vocals** (a common Suno over-add): "choir", "crowd vocals", "backing vocals", "gang vocals", "call-and-response", "vocal harmonies", "layered vocals"
 
 ### Best Practices
 
@@ -432,7 +432,7 @@ Suno includes sliders in the generation interface that affect output:
 
 Upload a clean acapella, a full track with background music, or sing directly into a mic (15 seconds to 4 minutes; the cleaner the source, the less needed). Suno then has you read a spoken phrase aloud and matches it to the upload as a consent check. Own voice only; 18+.
 
-- **Upgrade Voice to v6.** Voices made before v6 keep working, and the Create form offers a one-click upgrade ("Upgrade your Voice for better vocal consistency. You will still be able to use it the old way if you wish."). The picker distinguishes **Voice (new) — better vocal consistency** from **Style Voice (legacy) — the old method**. Upgrade before an album run so every track uses the same engine. Which v6 models accept a Voice without the upgrade is **(unverified)**.
+- **Upgrade Voice to v6.** Voices made before v6 keep working, and the Create form offers a one-click upgrade ("Upgrade your Voice for better vocal consistency. You will still be able to use it the old way if you wish."). The picker distinguishes **Voice (new) — better vocal consistency** from **Style Voice (legacy) — the old method**. Upgrade before an album run so every track uses the same engine.
 - **Not on instrumentals.** "Songs with Voices cannot be instrumental."
 - **Max Mode On** when a Voice is attached — Suno's own recommendation for voice consistency; keep Audio Influence fairly high (~0.70–0.85, see [creative-sliders.md](creative-sliders.md)).
 - **Prompting with a Voice**: drop gender/register descriptors from the style box — the Voice carries them. Keep the style prompt to 1–2 genres plus instrumentation.

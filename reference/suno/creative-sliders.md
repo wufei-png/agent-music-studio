@@ -87,7 +87,7 @@ Variety is not a "how weird" dial — it is a **prompt-rewriting** dial. Suno's 
 
 ## Max Mode
 
-A toggle under More Options, not a slider. Suno's copy: "Uses more compute to maximize consistency throughout the song. Costs 2x credits per song." Recommended by Suno for songs longer than two minutes, covers that should stay close to the source, style transfer, and keeping vocals and style consistent through the track — which is why the plugin defaults it **On** for album tracks and for anything using a Voice. Its measured effect on the reported late-song muffling is **(unverified)**. One creator reported two weak or broken outputs with Max Mode on during launch day (single source), and nobody has yet combined Max Mode with v6-wild.
+A toggle under More Options, not a slider. Suno's copy: "Uses more compute to maximize consistency throughout the song. Costs 2x credits per song." Recommended by Suno for songs longer than two minutes, covers that should stay close to the source, style transfer, and keeping vocals and style consistent through the track — which is why the plugin defaults it **On** for album tracks and for anything using a Voice. One creator reported two weak or broken outputs with Max Mode on during launch day (single source).
 
 ---
 

@@ -29,7 +29,7 @@ Record the choice in the track file's `### Generation Settings` table; the Gener
 - **Credits**: 10 per generation (two songs); 20 with Max Mode.
 - **Max Mode**: supported; recommended over ~2:00, for covers, Voices and style transfer.
 - **When to use**: every finished track. It follows the brief closely and adds few unrequested elements, but output quality varies by genre — reported strong on pop, drum & bass and UK garage; weak on grunge, metal, alt-country and synth-pop.
-- **Known quirks** (reported, launch week): on Duration Auto, outputs often run slower, sparser and longer than the prompt implies — state tempo and density explicitly; rock, metal, grunge and alt-country vocals drift to a generic or artifact-laden timbre (reported independently by several testers, including a professional mixer); the stereo image is narrower than testers expected (two independent reports); Covers hold the source melody and structure well with Variety Off, and drift with Variety on; mixes reported going muffled after ~2:30 on standard mode **(unverified)**.
+- **Known quirks** (reported, launch week): on Duration Auto, outputs often run slower, sparser and longer than the prompt implies — state tempo and density explicitly; rock, metal, grunge and alt-country vocals drift to a generic or artifact-laden timbre (reported independently by several testers, including a professional mixer); the stereo image is narrower than testers expected (two independent reports); Covers hold the source melody and structure well with Variety Off, and drift with Variety on; mixes reported going muffled after ~2:30 on standard mode.
 - Internal id (for reading payloads only): `chirp-hawk`.
 
 ## v6-wild

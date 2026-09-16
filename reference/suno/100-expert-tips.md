@@ -2,7 +2,7 @@
 
 A compilation of community craft advice for working in Suno, distilled into 100 tips, tricks, workflows, blueprints, and templates. For fun or for profit. Contributed by [@cbrahms](https://github.com/cbrahms) ([#561](https://github.com/bitwize-music-studio/claude-ai-music-skills/pull/561)).
 
-Companion to [best-practices.md](best-practices.md) (the how), [models.md](models.md) (which model, which settings) and [tips-and-tricks.md](tips-and-tricks.md) (the troubleshooting). This doc is the *why* and the *craft*. Where a tip here differs from those three, they win: they are kept against Suno's own documentation and tagged **(unverified)** where first-hand confirmation is still missing. Tips carrying that tag below are craft opinions, not tested behaviour.
+Companion to [best-practices.md](best-practices.md) (the how), [models.md](models.md) (which model, which settings) and [tips-and-tricks.md](tips-and-tricks.md) (the troubleshooting). This doc is the *why* and the *craft*. Where a tip here differs from those three, they win: they are kept against Suno's own documentation. Tips phrased as "reported" are craft opinions from the community, not tested behaviour.
 
 ---
 
@@ -50,7 +50,7 @@ Companion to [best-practices.md](best-practices.md) (the how), [models.md](model
 
 **19. Every descriptor has to earn its place.** The field takes 1,000 characters, and focused boxes of around ten descriptors work well — what dilutes is synonym piles, not length. If you need a paragraph, you're probably describing two songs. See [best-practices.md § Keep It Simple](best-practices.md#keep-it-simple--avoid-prompt-fatigue).
 
-**20. Punctuation is structure.** Commas separate descriptors; periods separate blocks (`[Vocal]. [Genre]. [Production]`). Semicolons, slashes and quotes are reported to parse inconsistently **(unverified)** — nothing is lost by avoiding them.
+**20. Punctuation is structure.** Commas separate descriptors; periods separate blocks (`[Vocal]. [Genre]. [Production]`). Semicolons, slashes and quotes are reported to parse inconsistently — nothing is lost by avoiding them.
 
 **21. Keep a "house sound" suffix.** Ten to fifteen words you append to every prompt for a project: `warm analog mix, slight vinyl crackle, intimate vocal, no reverb wash`. This is how albums sound like albums.
 
@@ -68,7 +68,7 @@ Companion to [best-practices.md](best-practices.md) (the how), [models.md](model
 
 **26. Make every verse different.** Twin verses (same shape, same images) are the number one sign of AI-written lyrics. Verse two should advance time, perspective, or stakes.
 
-**27. Repeat the chorus verbatim.** Suno sings the exact text. Small variations between choruses can come back as different melodies **(unverified)**, and the song loses its anchor.
+**27. Repeat the chorus verbatim.** Suno sings the exact text. Small variations between choruses are reported to come back as different melodies, and the song loses its anchor.
 
 **28. Use parentheses for backing vocals.** `Take me home (take me home)` produces a call-and-response layer. Overuse it and everything becomes a gang chant.
 
@@ -100,7 +100,7 @@ Companion to [best-practices.md](best-practices.md) (the how), [models.md](model
 
 **40. Spell brand names and acronyms as sounds.** `A.P.I.` becomes `ay pee eye`. `Kubernetes` becomes `koo-ber-NET-eez`. Keep clean spellings in your published lyric sheet.
 
-**41. Hyphenate for syllables.** `Deb-Ian`, `lo-ove` — hyphens guide syllable count and sustained vowels; capitalising one syllable to force stress (`re-COR-ded`) is reported to work **(unverified)**. Use sparingly; it's a scalpel. See [pronunciation-guide.md](pronunciation-guide.md).
+**41. Hyphenate for syllables.** `Deb-Ian`, `lo-ove` — hyphens guide syllable count and sustained vowels; capitalising one syllable to force stress (`re-COR-ded`) is reported to work. Use sparingly; it's a scalpel. See [pronunciation-guide.md](pronunciation-guide.md).
 
 **42. All caps means shouted — usually.** Suno tends to read capitalization as intensity, but it is unpredictable; test on a short generation. Use it for one line, not a verse.
 
@@ -313,7 +313,7 @@ Suno shipped the v6 family the day before this doc was first written and retired
 - **Advanced Mode is where the controls are**: Vocal Gender, Duration (Auto or Custom 10 s–6:00), Weirdness and Style Influence (both default 50), Exclude Styles. Suno's plain-language edits, single-lyric swaps, mashups and image / video / voice-memo inputs live in **Simple Mode**, which treats typed lyrics as a seed — so tips 61–62 still stand for engineered lyrics.
 - **Personas are now Voices.** Same feature, new name, with a one-click "Upgrade Voice to v6" on older ones. Custom Models were upgraded automatically. Tips 53 and 63 are written for the new name.
 - **Older songs**: Remaster when you only want better audio, Cover when you want v6 to reinterpret it following the melody — both render on v6.
-- **Craft advice carried over unchanged**: focused Style Box, concrete instrument names over adjectives, tempo as a number, one variable per iteration, and the Exclude Styles field rather than inline "no X". One report says the word `Duet` must appear in the Style Box for two-voice tracks **(unverified)** — the pattern in tip 43 works without it.
+- **Craft advice carried over unchanged**: focused Style Box, concrete instrument names over adjectives, tempo as a number, one variable per iteration, and the Exclude Styles field rather than inline "no X". One report says the word `Duet` must appear in the Style Box for two-voice tracks — the pattern in tip 43 works without it.
 
 Model-specific quirks (genre-dependent quality, stereo width, wild's unpredictable length) are tracked in [models.md](models.md) and `CHANGELOG.md`; revisit this section when they move.
 

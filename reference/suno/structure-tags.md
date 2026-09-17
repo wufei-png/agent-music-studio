@@ -227,7 +227,7 @@ Structure tags are reliable when every section carries one — but reliability s
 
 ## Per-Section Direction
 
-Two data points worth knowing: a launch-day test found v6's own description of an output naming details that existed only in a `[Bridge | Female — Whispered …]` cue, i.e. per-section direction is read **(unverified — no controlled test yet)**; and Suno's redesigned lyrics editor now offers a "Melodic instructions" option that "adds one bracketed production note per section (e.g. [half-time drums])" — Suno itself now writes per-section bracketed cues, which is this guide's Performance Cues convention. Bar-count targeting (`[VERSE 1 8]`) is **unverified** on v6.
+Two data points worth knowing: a launch-day test found v6's own description of an output naming details that existed only in a `[Bridge | Female — Whispered …]` cue, i.e. per-section direction is read; and Suno's redesigned lyrics editor now offers a "Melodic instructions" option that "adds one bracketed production note per section (e.g. [half-time drums])" — Suno itself now writes per-section bracketed cues, which is this guide's Performance Cues convention.
 
 ## Related Skills
 

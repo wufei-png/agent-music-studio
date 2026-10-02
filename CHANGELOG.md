@@ -7,6 +7,7 @@ This project uses [Conventional Commits](https://conventionalcommits.org/) and [
 ## [Unreleased]
 
 ### Added
+- **Codex session startup and album resume reuse the shared workflow guide** — explicitly load the installed plugin's instructions, preserve configured overrides and verification gates, select Codex health diagnostics, and render recommendations with the host's skill names.
 - **`health_check(runtime="codex")` separates source presence from host registration** — Codex sessions keep venv and album-collision checks without inspecting Claude's cache or claiming that on-disk skills prove host loading. Calls without a runtime retain the Claude diagnostics.
 - **Shared setup and configuration now include Codex runtime guidance** — resolve plugin resources from the loaded skill, quote dependency paths, and use the host's skill and question interfaces while preserving the single skills tree and shared venv.
 - **Codex plugin discovery is now supported alongside the Claude Code plugin** — the root `.codex-plugin/plugin.json` reuses the canonical `skills/` tree. Claude keeps `.mcp.json` on `${CLAUDE_PLUGIN_ROOT}`; Codex inlines its stdio spawn (`./mcp-launch` + `"cwd": "."`) in the Codex manifest, because a single command string cannot satisfy both hosts.

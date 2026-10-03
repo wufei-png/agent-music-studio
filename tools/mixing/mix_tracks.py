@@ -17,6 +17,7 @@ import sys
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 import numpy as np
@@ -34,8 +35,10 @@ try:
 except ImportError:
     yaml = None  # type: ignore[assignment]
 
+numba: ModuleType | None
 try:
-    import numba
+    import numba as _numba
+    numba = _numba
 except ImportError:
     numba = None
 
